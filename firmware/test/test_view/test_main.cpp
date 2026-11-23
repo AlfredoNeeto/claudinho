@@ -68,7 +68,7 @@ void test_stale_after_3_minutes() {
   on_line(st, full_line(), 0);
   View fresh = make_view(st, 179000);
   TEST_ASSERT_FALSE(fresh.stale);
-  TEST_ASSERT_EQUAL_STRING("20:13", fresh.fresh);
+  TEST_ASSERT_EQUAL_STRING("20:11", fresh.fresh);  // a leitura chegou às 20:11; o rodapé não anda com o relógio
 
   View old = make_view(st, 181000);
   TEST_ASSERT_TRUE(old.stale);
@@ -110,6 +110,13 @@ void test_pace_marker() {
   l.h5.used = 100;
   on_line(st, l, 1000);
   TEST_ASSERT_FALSE(make_view(st, 1000).w5.showPace);
+
+  // uso exatamente igual ao ritmo (150 de 300 min, 50%): bolinha sobre a parte usada
+  l.h5 = {true, 50, kT + 150 * 60};
+  on_line(st, l, 1000);
+  View eq = make_view(st, 1000);
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, 50.0f, eq.w5.pace);
+  TEST_ASSERT_TRUE(eq.w5.beadOnFill);
 }
 
 void setup() {

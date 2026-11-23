@@ -1,5 +1,6 @@
 # C23: a placa real responde "claudinho 1 <board>" ao "?" em até 3 s, logo depois de abrir a porta.
 # Feche o bridge antes (ele segura a porta): Get-Process claudinho | Stop-Process
+param([string]$Board = 'cyd')
 $ErrorActionPreference = 'Stop'
 $vids = '1A86', '303A'
 $present = [IO.Ports.SerialPort]::GetPortNames()
@@ -20,7 +21,7 @@ foreach ($name in $ports) {
     while ($sw.ElapsedMilliseconds -lt 3000) {
       if ($sw.ElapsedMilliseconds -ge $next) { $sp.Write("?`n"); $next += 500 }
       try { $line = $sp.ReadLine().TrimEnd("`r") } catch [TimeoutException] { continue }
-      if ($line -like 'claudinho 1 *') { "OK: $name respondeu '$line' em $($sw.ElapsedMilliseconds) ms"; exit 0 }
+      if ($line -eq "claudinho 1 $Board") { "OK: $name respondeu '$line' em $($sw.ElapsedMilliseconds) ms"; exit 0 }
     }
   } finally { $sp.Dispose() }
   "sem resposta em $name"

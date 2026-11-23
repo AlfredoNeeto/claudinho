@@ -80,7 +80,8 @@ public class StatuslineTests : IDisposable
         Run(p.ToJsonString());
 
         var snap = JsonNode.Parse(File.ReadAllText(Snap))!.AsObject();
-        Assert.Equal(Contract.Keys.OrderBy(k => k), snap.Select(kv => kv.Key).OrderBy(k => k));
+        // lista literal da door 1, não a constante de produção
+        Assert.Equal(new[] { "ctx", "d7", "h5", "m", "p", "t", "tok", "tz", "usd", "v" }, snap.Select(kv => kv.Key).OrderBy(k => k, StringComparer.Ordinal));
         Assert.Equal(1, snap["v"]!.GetValue<int>());
         Assert.Equal(1738420000, snap["t"]!.GetValue<long>());
         Assert.Equal(-180, snap["tz"]!.GetValue<int>());
@@ -105,6 +106,19 @@ public class StatuslineTests : IDisposable
 
         Run(Full, () => true, () => started++);
         Assert.Equal(1, started);
+
+        // o detector real olha o mutex que o bridge segura
+        var name = $@"Local\Claudinho.Test.{Guid.NewGuid():N}";
+        Assert.False(BridgeHost.Running(name));
+        using var ready = new ManualResetEventSlim();
+        using var done = new ManualResetEventSlim();
+        var holder = new Thread(() => { using var m = new Mutex(true, name); ready.Set(); done.Wait(); m.ReleaseMutex(); });
+        holder.Start();
+        ready.Wait();
+        Assert.True(BridgeHost.Running(name));
+        done.Set();
+        holder.Join();
+        Assert.False(BridgeHost.Running(name));
     }
 
     [Fact]

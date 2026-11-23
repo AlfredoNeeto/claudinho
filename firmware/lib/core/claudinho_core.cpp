@@ -251,7 +251,7 @@ View make_view(const State& st, uint32_t nowMs) {
   v.stale = age > kStaleMs;
   if (v.stale) snprintf(v.fresh, sizeof v.fresh, "há %lu min", (unsigned long)(age / 60000));
   else {
-    int64_t local = now + (int64_t)l.tz * 60;
+    int64_t local = l.t + (int64_t)l.tz * 60;  // horário da última leitura (AC 14), não o relógio atual
     int64_t sec = ((local % 86400) + 86400) % 86400;
     snprintf(v.fresh, sizeof v.fresh, "%02d:%02d", (int)(sec / 3600), (int)((sec % 3600) / 60));
   }

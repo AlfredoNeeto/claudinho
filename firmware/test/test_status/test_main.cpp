@@ -28,6 +28,8 @@ void test_status_precedence() {
   TEST_ASSERT_EQUAL_STRING("Ritmo acelerado", view_for(62, 200).title);
   TEST_ASSERT_EQUAL_STRING("Quase no limite", view_for(86, 25).title);
   TEST_ASSERT_EQUAL_STRING("Tranquilo", view_for(18, 160).title);
+  // >= 80% e projetando antes do reset: ritmo acelerado ganha de quase no limite
+  TEST_ASSERT_EQUAL_STRING("Ritmo acelerado", view_for(86, 120).title);
   // empate: 5h no limite e semana acelerada -> limite ganha
   TEST_ASSERT_EQUAL_STRING("Limite atingido", view_for(100, 43, 95).title);
 }
@@ -47,6 +49,7 @@ void test_limit_text() {
 // C34
 void test_risk_color() {
   TEST_ASSERT_TRUE(view_for(86, 25).w5.risky);   // >= 80
+  TEST_ASSERT_TRUE(view_for(80, 25).w5.risky);   // exatamente 80, sem projeção
   TEST_ASSERT_TRUE(view_for(62, 200).w5.risky);  // projeção antes do reset
   TEST_ASSERT_FALSE(view_for(79, 10).w5.risky);  // 79% no fim da janela: no ritmo
   TEST_ASSERT_FALSE(view_for(18, 160).w5.risky);

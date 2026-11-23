@@ -11,6 +11,9 @@ if ($files.Count -ne 1 -or $files[0].Name -ne 'claudinho.exe') {
   Write-Error "esperado só claudinho.exe em dist, veio: $($files.Name -join ', ')"; exit 1
 }
 
+# um exe dependente do .NET tem poucos MB; com o runtime dentro passa de 50 MB
+if ($files[0].Length -lt 50MB) { Write-Error "claudinho.exe tem só $([math]::Round($files[0].Length / 1MB, 1)) MB: não é self-contained"; exit 1 }
+
 # esconde qualquer .NET da máquina: o exe tem de levar o runtime dentro
 $env:DOTNET_ROOT = 'C:\nao-existe'
 $env:PATH = "$env:SystemRoot\System32"

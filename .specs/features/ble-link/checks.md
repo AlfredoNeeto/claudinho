@@ -3,7 +3,7 @@
 Profile: light
 Plan: `.specs/features/ble-link/plan.md`
 
-15 checks in 2 slices · 3 one-way doors · 0 open
+17 checks in 2 slices · 3 one-way doors · 0 open
 
 Comandos de prova (os mesmos do claudinho):
 
@@ -71,6 +71,12 @@ Proof: `pwsh -NoProfile -File pc/tools/ble-check.ps1`
 **C15** - Quando abrir um candidato BLE falha, o bridge registra `ble falhou: 0x<HResult> <mensagem>`, e o mesmo motivo seguido só uma vez; depois de conectar, o mesmo motivo volta a ser registrado (AC 12, achado no build: o `0x80070016` passava calado)
 Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~BleTests.Ble_failure_reason_logged_when_it_changes"`
 
+**C16** - Com a CYD no USB só para energia e leitura (o script segura a COM, então o bridge conecta por BLE), por 60 min o menor `heap livre ... min M` impresso a cada 60 s fica em M ≥ 20 KB e a placa não imprime `BOOT` de novo (Impact: o LVGL e o BLE dividem o heap; achado no build, aprovado pelo usuário)
+Proof: `pwsh -NoProfile -File pc/tools/heap-watch.ps1`
+
+**C17** - Uma linha de snapshot que não é um objeto JSON (truncada, array, lixo) vira nada pelo ar: o `ForAir` não lança, não manda o nome do projeto, e zero bytes vão para a RX (AC 10, AC 12; achado pelo Verifier no round 1: o `JsonException` derrubava o bridge)
+Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~BleTests.Invalid_snapshot_sends_nothing_over_air"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -86,8 +92,8 @@ Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~BleTests.Ble
 
 ## Swept
 
-- validation: C4, C10
-- failure modes: C12
+- validation: C4, C10, C17
+- failure modes: C12, C17, C16
 - idempotency: n/a - cada linha é o estado inteiro; reenviar a mesma só redesenha igual (C10 do claudinho)
 - authorization: n/a - aberto por escolha do usuário (plano, Assumptions); o que não deve sair do PC não vai pelo ar (C10)
 - concurrency: C5 - e os bytes passam da task do NimBLE para o `loop()` por um buffer, sem o callback tocar no LVGL

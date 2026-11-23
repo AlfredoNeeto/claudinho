@@ -23,13 +23,19 @@ No **PowerShell** (o Git Bash quebra o instalador da Espressif):
 
 ```powershell
 python -m pip install platformio
+.\dist\claudinho.exe uninstall             # tira o statusLine e fecha o bridge; senão ele volta a cada resposta
 # coloque a CYD em modo de gravação: segure BOOT, toque RST, solte BOOT (a tela fica preta)
 python -m platformio run -d firmware -e cyd -t upload
+.\dist\claudinho.exe install               # de volta ao statusLine (o exe do passo 2 acima)
 ```
 
 O reset automático pelo cabo desta CYD não entra no modo de gravação, por isso o passo dos botões
-vem antes de cada gravação (o `platformio.ini` já grava sem resetar antes). Feche o
-`claudinho bridge` antes: ele segura a porta.
+vem antes de cada gravação (o `platformio.ini` já grava sem resetar antes).
+
+O bridge segura a porta USB da placa, e com o Claudinho instalado o Claude Code o religa depois de
+cada resposta. Fechar só o bridge não basta: remova o `statusLine` antes de gravar ou rodar os
+testes na placa (`pio test`) e reinstale no fim. Fechar todas as sessões do Claude Code também
+serve.
 
 ## Limites que valem saber
 

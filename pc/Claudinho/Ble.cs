@@ -25,11 +25,20 @@ internal static class Ble
     static readonly JsonSerializerOptions Json = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     // Door 3: o nome da pasta do projeto não vai pelo ar; o resto da linha v1 fica igual.
+    // Linha que não é um objeto JSON vira nada: a placa a descartaria mesmo, e nada sai do PC sem passar por aqui.
     public static string ForAir(string text)
     {
-        if (!text.StartsWith('{') || JsonNode.Parse(text) is not JsonObject line) return text;
-        line.Remove("p");
-        return line.ToJsonString(Json) + "\n";
+        if (text == "?\n") return text;
+        try
+        {
+            if (JsonNode.Parse(text) is JsonObject line)
+            {
+                line.Remove("p");
+                return line.ToJsonString(Json) + "\n";
+            }
+        }
+        catch (JsonException) { }
+        return "";
     }
 
     public static IEnumerable<byte[]> Chunks(byte[] data, int size)

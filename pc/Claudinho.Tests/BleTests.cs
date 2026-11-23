@@ -57,6 +57,15 @@ public class BleTests
     }
 
     [Fact]
+    public void Invalid_snapshot_sends_nothing_over_air()
+    {
+        Assert.Equal("", Ble.ForAir("{\"v\":1,\"p\":\"monitor\"\n"));    // truncado à mão
+        Assert.Equal("", Ble.ForAir("[1,\"monitor\"]\n"));
+        Assert.Equal("", Ble.ForAir(" lixo com monitor\n"));
+        Assert.Empty(Ble.Chunks([], 20));                               // linha vazia: nenhuma escrita na RX
+    }
+
+    [Fact]
     public void Chunks_cover_line_in_order()
     {
         var data = Encoding.UTF8.GetBytes(new string('x', 300) + "ção\n");

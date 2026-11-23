@@ -5,6 +5,7 @@ namespace Claudinho;
 
 internal interface ISerial : IDisposable
 {
+    string Name { get; } // "usb COM3", "ble D4:8A:FC:12:34:56"
     void Write(string text);
     string? ReadLine(int timeoutMs);
 }
@@ -41,6 +42,7 @@ internal sealed class Bridge(Func<string?> readSnapshot, Func<ISerial?> connect,
             if (now < nextTry) return true;
             link = connect();
             if (link is null) { nextTry = now + Retry; return true; }
+            log($"conectado: {link.Name}");
             sent = null; // acabou de conectar: manda o snapshot atual já
         }
 
@@ -108,12 +110,14 @@ internal static class Board
     public const int HandshakeTimeoutMs = 3000;
 
     public static ISerial? Pick(IEnumerable<(string Port, string Vid)> candidates, Func<string, ISerial?> open,
-                                int timeoutMs = HandshakeTimeoutMs)
+                                int timeoutMs = HandshakeTimeoutMs) =>
+        FirstConfirmed(candidates.Where(c => Vids.Contains(c.Vid, StringComparer.OrdinalIgnoreCase)).Select(c => open(c.Port)), timeoutMs);
+
+    // Abre um candidato por vez (a sequência é preguiçosa) e fica com o primeiro que passar no handshake.
+    public static ISerial? FirstConfirmed(IEnumerable<ISerial?> candidates, int timeoutMs)
     {
-        foreach (var (port, vid) in candidates)
+        foreach (var s in candidates)
         {
-            if (!Vids.Contains(vid, StringComparer.OrdinalIgnoreCase)) continue;
-            var s = open(port);
             if (s is null) continue;
             if (Handshake(s, timeoutMs)) return s;
             s.Dispose();
@@ -140,7 +144,10 @@ internal static class Board
         return false;
     }
 
-    public static ISerial? Connect() => Pick(UsbPorts(), ComPort.TryOpen);
+    public static ISerial? Usb() => Pick(UsbPorts(), ComPort.TryOpen);
+
+    // USB primeiro: com o cabo de dados no PC, o BLE nem é procurado.
+    public static ISerial? Connect(Func<ISerial?> usb, Func<ISerial?> ble) => usb() ?? ble();
 
     // O registro guarda o VID de cada porta USB; portas Bluetooth e da placa-mãe nem aparecem aqui.
     public static IEnumerable<(string Port, string Vid)> UsbPorts()
@@ -179,6 +186,8 @@ internal sealed class ComPort : ISerial
         try { return new ComPort(name); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException) { return null; }
     }
+
+    public string Name => $"usb {sp.PortName}";
 
     public void Write(string text) => sp.Write(text);
 

@@ -24,8 +24,9 @@ switch (args.FirstOrDefault())
             () => BridgeHost.Running(MutexName), StartBridge);
 
     case "bridge":
-        var bridge = new Bridge(() => Snapshot.Read(snapshot), Board.Connect,
-            line => File.AppendAllText(log, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {line}\n"));
+        Action<string> logLine = line => File.AppendAllText(log, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {line}\n");
+        var ble = new BleFinder(Ble.Available, Ble.Scan, logLine);
+        var bridge = new Bridge(() => Snapshot.Read(snapshot), () => Board.Connect(Board.Usb, ble.Find), logLine);
         return BridgeHost.Run(MutexName, log, bridge, () => DateTime.UtcNow, () => Thread.Sleep(250));
 
     case "install":

@@ -6,6 +6,7 @@ sealed class FakeSerial(params string[] replies) : ISerial
     public List<string> Written { get; } = [];
     public bool FailWrites { get; set; }
     public bool Disposed { get; private set; }
+    public string Name { get; init; } = "fake";
 
     public void Write(string text)
     {
@@ -136,6 +137,17 @@ public class BridgeTests
         Assert.True(r.Bridge.Tick(T0.AddSeconds(6)));
         Assert.Equal(2, r.Connects);
         Assert.Equal(["{\"v\":1,\"t\":2}\n"], r.Port.Written);
+    }
+
+    [Fact]
+    public void Logs_link_name_on_connect()
+    {
+        var r = new Rig { Next = new FakeSerial { Name = "usb COM3" } };
+        r.Bridge.Tick(T0);
+        r.Next = new FakeSerial { Name = "ble D4:8A:FC:12:34:56" };
+        r.Bridge.Tick(T0.AddSeconds(1));            // já conectado: não registra de novo
+
+        Assert.Equal(["conectado: usb COM3"], r.Log);
     }
 
     [Fact]

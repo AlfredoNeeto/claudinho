@@ -49,7 +49,7 @@ internal static class Ble
     }
 
     // Abre cada aparelho que anuncia o serviço, enquanto a janela de busca durar; quem consome para no primeiro que serve.
-    public static IEnumerable<ISerial?> Scan()
+    public static IEnumerable<ISerial?> Scan(Action<string> fail)
     {
         var found = new BlockingCollection<ulong>();
         var seen = new ConcurrentDictionary<ulong, bool>();
@@ -64,7 +64,7 @@ internal static class Ble
             {
                 var left = deadline - Environment.TickCount64;
                 if (left <= 0 || !found.TryTake(out var address, (int)left)) yield break;
-                yield return BleLink.TryOpen(address);
+                yield return BleLink.TryOpen(address, fail);
             }
         }
         finally
@@ -88,10 +88,11 @@ internal static class Ble
     }
 }
 
-internal sealed class BleFinder(Func<bool> available, Func<IEnumerable<ISerial?>> scan, Action<string> log,
+internal sealed class BleFinder(Func<bool> available, Func<Action<string>, IEnumerable<ISerial?>> scan, Action<string> log,
                                 int timeoutMs = Board.HandshakeTimeoutMs)
 {
     bool warned;
+    string? lastFail;
 
     public ISerial? Find()
     {
@@ -101,7 +102,17 @@ internal sealed class BleFinder(Func<bool> available, Func<IEnumerable<ISerial?>
             warned = true;
             return null;
         }
-        return Board.FirstConfirmed(scan(), timeoutMs);
+        var link = Board.FirstConfirmed(scan(Failed), timeoutMs);
+        if (link is not null) lastFail = null;
+        return link;
+    }
+
+    // A busca repete a cada 5 s: o mesmo motivo só entra no log uma vez seguida.
+    void Failed(string reason)
+    {
+        if (reason == lastFail) return;
+        lastFail = reason;
+        log($"ble falhou: {reason}");
     }
 }
 
@@ -125,7 +136,7 @@ internal sealed class BleLink : ISerial
         dev.ConnectionStatusChanged += OnStatus;
     }
 
-    public static ISerial? TryOpen(ulong address)
+    public static ISerial? TryOpen(ulong address, Action<string> fail)
     {
         BluetoothLEDevice? dev = null;
         try
@@ -149,6 +160,7 @@ internal sealed class BleLink : ISerial
         }
         catch (Exception e) when (e is COMException or OperationCanceledException or UnauthorizedAccessException or ObjectDisposedException)
         {
+            fail($"0x{e.HResult:X8} {e.Message}");
             dev?.Dispose();
             return null;
         }

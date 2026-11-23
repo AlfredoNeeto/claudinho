@@ -28,7 +28,7 @@ public class BleTests
         var other = new FakeSerial("hello");
         var board = new FakeSerial("claudinho 1 cyd");
         var log = new List<string>();
-        var finder = new BleFinder(() => true, () => [other, board], log.Add, timeoutMs: 300);
+        var finder = new BleFinder(() => true, _ => [other, board], log.Add, timeoutMs: 300);
 
         Assert.Same(board, finder.Find());
         Assert.True(other.Disposed);
@@ -73,11 +73,29 @@ public class BleTests
     {
         var log = new List<string>();
         var scans = 0;
-        var finder = new BleFinder(() => false, () => { scans++; return []; }, log.Add);
+        var finder = new BleFinder(() => false, _ => { scans++; return []; }, log.Add);
 
         for (var i = 0; i < 3; i++) Assert.Null(finder.Find());
 
         Assert.Equal(0, scans);
         Assert.Equal(["bluetooth indisponível"], log);
+    }
+
+    [Fact]
+    public void Ble_failure_reason_logged_when_it_changes()
+    {
+        var log = new List<string>();
+        var reasons = new Queue<string?>(["0x80070016 A", "0x80070016 A", "0x80070079 B", null, "0x80070079 B"]);
+        var finder = new BleFinder(() => true, fail =>
+        {
+            var r = reasons.Dequeue();
+            if (r is null) return [new FakeSerial("claudinho 1 cyd")];  // conectou: zera o último motivo
+            fail(r);
+            return [null];
+        }, log.Add, timeoutMs: 300);
+
+        for (var i = 0; i < 5; i++) finder.Find();
+
+        Assert.Equal(["ble falhou: 0x80070016 A", "ble falhou: 0x80070079 B", "ble falhou: 0x80070079 B"], log);
     }
 }

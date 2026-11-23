@@ -59,7 +59,7 @@ Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~InstallTests
 **C14** - No PC do trabalho, depois de `claudinho.exe install --hook` e de uma resposta do Claude Code numa sessão nova, o `snapshot.json` em `%LOCALAPPDATA%\Claudinho` tem o horário da resposta, `ctx` e `m`, e a placa mostra o modelo e `Cota indisponível` (AC 1, AC 6, door 1: o Claude Code roda o comando `~/...` e não ignora o hook)
 Proof: `manual - PC do trabalho: install --hook, abrir o Claude Code, mandar uma mensagem, conferir o snapshot.json e a tela`
 
-**C15** - `claudinho` sem argumento sai com 2 e o uso impresso contém `hook` e `install [--hook] [--force]` (AC 16)
+**C15** - `claudinho` sem argumento sai com 2 e o uso impresso contém `| hook |` (o verbo, não só o `--hook` do install) e `install [--hook] [--force]` (AC 16)
 Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~HookTests.Exe_usage_lists_hook"`
 
 **C16** - `.specs/STATE.md` tem a AD-005 `active` com o texto da door 2, e a AD-001 com status `superseded by AD-005` (door 2)

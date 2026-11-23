@@ -13,3 +13,5 @@
 ## Handoff
 
 Claudinho entregue e verificado. `ble-link` aprovado; código no PC e no firmware escrito, testes do PC verdes. Falta gravar o firmware na CYD e rodar as provas de hardware e as manuais.
+
+`work-hook` construído e verificado (rounds 1 e 2): 16 de 17 checks verdes; falta só a C14, manual, no PC do trabalho (`claudinho.exe install --hook`).

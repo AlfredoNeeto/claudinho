@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Claudinho.Tests/Claudinho.Tests.csproj" />
+  <Project Path="Claudinho/Claudinho.csproj" />
+</Solution>

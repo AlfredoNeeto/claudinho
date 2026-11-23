@@ -127,6 +127,19 @@ public class HookTests : IDisposable
     }
 
     [Fact]
+    public void Unreadable_transcript_keeps_snapshot()
+    {
+        File.WriteAllLines(Transcript, [Assistant()]);
+        File.WriteAllText(Snap, "anterior");
+        var started = 0;
+        using var locked = new FileStream(Transcript, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        Assert.Equal(0, Run(Event(), () => false, () => started++));
+        Assert.Equal("anterior", File.ReadAllText(Snap));
+        Assert.Equal(0, started);
+    }
+
+    [Fact]
     public void Skips_bad_lines()
     {
         var last = Assistant(model: "claude-sonnet-4-5", input: 0, creation: 0, read: 20000);
@@ -185,7 +198,7 @@ public class HookTests : IDisposable
     {
         var (code, stdout) = Exe(null, "");
         Assert.Equal(2, code);
-        Assert.Contains("hook", stdout);
+        Assert.Contains("| hook |", stdout);
         Assert.Contains("install [--hook] [--force]", stdout);
     }
 }

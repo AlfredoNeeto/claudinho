@@ -3,7 +3,7 @@
 Profile: light
 Plan: `.specs/features/work-hook/plan.md`
 
-16 checks in 2 slices · 2 one-way doors · 1 open, of which 0 block
+17 checks in 2 slices · 2 one-way doors · 1 open, of which 0 block
 
 Comandos de prova:
 
@@ -65,13 +65,16 @@ Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~HookTests.Ex
 **C16** - `.specs/STATE.md` tem a AD-005 `active` com o texto da door 2, e a AD-001 com status `superseded by AD-005` (door 2)
 Proof: `pwsh -NoProfile -Command "if ((Select-String .specs/STATE.md -Pattern '^\| AD-005 .*\| active \|$') -and (Select-String .specs/STATE.md -Pattern '^\| AD-001 .*\| superseded by AD-005 \|$')) { exit 0 } else { exit 1 }"`
 
+**C17** - Com o transcript existindo mas travado por outro handle (`FileShare.None`), o hook devolve 0, o `snapshot.json` anterior fica igual e o bridge não é iniciado (AC 7 "não pode ser lido", AC 10; achado pelo Verifier no round 1: o caso não tinha check)
+Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~HookTests.Unreadable_transcript_keeps_snapshot"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
 | --- | --- | --- |
 | doors do plano (2) | door 1 (entrada `hooks.Stop`) C9, C14 · door 2 (AD-005) C16 | - |
 | entradas do transcript que não servem (5) | `user` C1 · `isSidechain` C1 · sem `usage` C1 · `<synthetic>` C1 · linha que não é JSON C6 | - |
-| entradas recusadas pelo AC 7 (5) | stdin não JSON C5 · stdin não objeto C5 · sem `transcript_path` C5 · arquivo inexistente C5 · nenhuma entrada válida C5 | - |
+| entradas recusadas pelo AC 7 (6) | stdin não JSON C5 · stdin não objeto C5 · sem `transcript_path` C5 · arquivo inexistente C5 · arquivo que não pode ser lido C17 · nenhuma entrada válida C5 | - |
 | divisor do `ctx` (3) | abaixo de 200000 C2 · exatamente 200000 C2 · acima C2 | - |
 | formatos de id do modelo (2) | sem data C3 · com data de 8 dígitos C3 | - |
 | transições de modo novas (3) | statusLine → hook C11 · hook → statusLine C11 · hook → nada C12 | - |
@@ -89,7 +92,7 @@ Proof: `pwsh -NoProfile -Command "if ((Select-String .specs/STATE.md -Pattern '^
 - authorization: n/a - só arquivos do próprio usuário; o que é da empresa nunca é lido nem escrito (C13)
 - concurrency: C7 - e duas sessões gravando juntas já passam pelo `Snapshot.Write` atômico do claudinho
 - data lifecycle: C12
-- dependency failure: C5 (transcript ausente), C4 (falha ao iniciar o bridge)
+- dependency failure: C5 (transcript ausente), C17 (transcript travado), C4 (falha ao iniciar o bridge)
 - state transitions: C11, C12
 - observability: n/a - o hook não escreve nada (AC 10); o `bridge.log` não muda
 
@@ -101,3 +104,5 @@ O código existente lido e alterado, mais o novo, ÷ 4:
 - S2: `Installer.cs` 4 KB + `InstallTests.cs` 4 KB + testes novos ~4 KB + `README.md` 4 KB ≈ 16 KB ≈ 4k
 - Total ≈ 9k, abaixo do budget de 150k - um builder
 - Mechanism: one builder (cabe no budget)
+
+- **Settled mid-build:** round 1 do Verifier: C15 passou a exigir `| hook |` (o `hook` sozinho casava com `install [--hook]`); C17 novo. Ler o transcript inteiro a cada `Stop` ficou: medido em 2026-11-23, um transcript de 32 MB custa ~190 ms no total, dos quais ~80 ms são só a partida do exe

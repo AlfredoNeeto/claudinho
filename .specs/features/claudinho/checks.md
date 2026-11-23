@@ -178,3 +178,7 @@ Tudo é código novo; a estimativa é o tamanho do que será escrito e lido, ÷ 
 
 - S1 + S2 + S4 (PC, C#) ≈ 70 KB ≈ 18k; S3 + S6 (núcleo e UI do firmware, sem contar fontes geradas, que não são lidas) ≈ 110 KB ≈ 28k; S5 = 0. Total ≈ 46k, abaixo do budget de 150k - um builder
 - Mechanism: one builder (cabe no budget)
+
+- **Boundary:** C1-C39 fechados em `b1e6631` (um builder; S1, S2 e S4 verdes no PC; S3 e S6 verdes na CYD; C29 confirmado pelo usuário na placa)
+- **Settled mid-build:** a CYD não entra em modo de gravação pelo reset automático: o `platformio.ini` grava sem resetar antes e o usuário põe a placa no modo (BOOT + RST); o painel desta CYD inverte as cores (`invertDisplay(true)`); PlatformIO roda no PowerShell (o Git Bash quebra o instalador da Espressif) e com `core_dir = C:/pio` (limite de 260 caracteres); pioarduino fixado em 55.03.312-1 (core 3.3.12), porque o "stable" já é o core 4.0
+- **Abandoned:** `pio test --without-building` (o pioarduino monta o `write-flash` sem endereços); sequências de reset customizadas do esptool (nenhuma segurou o IO0)

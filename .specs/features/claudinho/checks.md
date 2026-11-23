@@ -8,7 +8,7 @@ Plan: `.specs/features/claudinho/plan.md`
 Comandos de prova (o repo é novo; estes são os executores que o próprio projeto cria):
 
 - PC: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~<Classe>.<Teste>"` (xUnit)
-- Firmware, núcleo: `pio test -d firmware -e cyd -f <pasta>` roda os testes Unity **na CYD plugada** (não há compilador C++ no PC para a env `native`); o nome do caso aparece na saída do Unity
+- Firmware, núcleo: `pio test -d firmware -e cyd -f <pasta>` roda os testes Unity **na CYD plugada** (não há compilador C++ no PC para a env `native`); o nome do caso aparece na saída do Unity. `pio` = `python -m platformio`, rodado no **PowerShell**: dentro do Git Bash o instalador da Espressif recusa o ambiente MSYS
 - Hardware: scripts em `pc/tools/` que falam com a placa real
 
 ## Checks

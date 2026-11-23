@@ -1,0 +1,40 @@
+# Claudinho
+
+Monitor de mesa da cota do Claude Code: uma ESP32 com tela mostra o uso da sessão de 5h e da
+semana, quanto falta para renovar e se você está gastando rápido demais. O Clawd na tela muda de
+pose conforme o risco.
+
+Os dados vêm só da barra de status do Claude Code (sem token, sem rede) e chegam à placa pelo cabo
+USB. Plano completo em `.specs/features/claudinho/plan.md`; prévia da tela em `design/painel.html`.
+
+## Em cada PC (casa, trabalho)
+
+1. Plugue a placa. O driver CH340 costuma instalar sozinho pelo Windows Update.
+2. Pegue o `claudinho.exe`: baixe do Release do repositório, ou gere com
+   `pwsh pc/tools/check-publish.ps1` (sai em `dist/claudinho.exe`).
+3. Rode `claudinho.exe install` e abra o Claude Code de novo.
+
+Para remover: `claudinho uninstall`. O `settings.json` original fica salvo em
+`~/.claude/settings.json.claudinho.bak`.
+
+## Firmware (uma vez, em qualquer PC)
+
+No **PowerShell** (o Git Bash quebra o instalador da Espressif):
+
+```powershell
+python -m pip install platformio
+python -m platformio run -d firmware -e cyd -t upload
+```
+
+Se aparecer `Wrong boot mode detected`, segure o botão **BOOT** da placa, toque em **RST** e
+solte o BOOT logo que aparecer `Connecting...`.
+
+## Limites que valem saber
+
+- A cota de 5h e da semana só aparece com login de assinatura (Pro ou Max). Com chave de API, a
+  tela mostra `Cota indisponível`; contexto e custo continuam aparecendo.
+- A placa só vê o uso quando o Claude Code responde. Conversas no claude.ai ou no app gastam da
+  mesma cota, mas só entram na conta na próxima resposta do Claude Code. Se você usa os dois
+  juntos, trate o % da placa como um mínimo. O selo laranja `há N min` avisa que o número está
+  parado.
+- O Clawd e a paleta são da Anthropic: projeto de uso pessoal, não publique nem venda com eles.

@@ -66,6 +66,8 @@ void handle(const char* line, bool fromBle) {
   }
 }
 
+void print_heap();
+
 void setup() {
   Serial.setRxBufferSize(1024);
   Serial.begin(115200);
@@ -84,7 +86,12 @@ void setup() {
   lv_display_set_buffers(d, drawBuf, nullptr, sizeof drawBuf, LV_DISPLAY_RENDER_MODE_PARTIAL);
   ui_init();
   ble_init();
-  Serial.printf("heap livre %u\n", (unsigned)ESP.getFreeHeap());  // o LVGL e o BLE dividem o heap de uma placa sem PSRAM
+  print_heap();
+}
+
+// O LVGL e o BLE dividem o heap de uma placa sem PSRAM; o mínimo desde o boot mostra se ele encolhe com as horas (C16).
+void print_heap() {
+  Serial.printf("heap livre %u min %u\n", (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMinFreeHeap());
 }
 
 void loop() {
@@ -96,6 +103,8 @@ void loop() {
     if (bleReader.feed(c)) handle(bleReader.line(), true);
   }
   const uint32_t now = millis();
+  static uint32_t lastHeap = 0;
+  if (now - lastHeap >= 60000) { lastHeap = now; print_heap(); }
   cl::tick(state, now);
   ui_update(state, now);
   lv_timer_handler();

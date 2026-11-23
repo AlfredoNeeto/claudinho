@@ -5,7 +5,9 @@ semana, quanto falta para renovar e se você está gastando rápido demais. O Cl
 pose conforme o risco.
 
 Os dados vêm só da barra de status do Claude Code (sem token, sem rede) e chegam à placa pelo cabo
-USB. Plano completo em `.specs/features/claudinho/plan.md`; prévia da tela em `design/painel.html`.
+USB ou por Bluetooth. Pelo Bluetooth basta a placa estar numa fonte USB na tomada, a poucos metros
+do PC: o bridge procura primeiro no USB e, se não achar, procura por Bluetooth, sem parear. Pelo
+Bluetooth o nome da pasta do projeto não é enviado. Plano completo em `.specs/features/claudinho/plan.md`; prévia da tela em `design/painel.html`.
 
 ## Em cada PC (casa, trabalho)
 

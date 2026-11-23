@@ -16,6 +16,11 @@ Bluetooth o nome da pasta do projeto não é enviado. Plano completo em `.specs/
    `pwsh pc/tools/check-publish.ps1` (sai em `dist/claudinho.exe`).
 3. Rode `claudinho.exe install` e abra o Claude Code de novo.
 
+   Num PC em que a empresa define a status line (configurações gerenciadas do plano Team ou
+   Enterprise), a do Claudinho nunca roda. Nesse caso, use `claudinho.exe install --hook`: um hook
+   `Stop` lê o transcript da sessão depois de cada resposta. Cada PC usa um modo só, e rodar
+   `install` com ou sem `--hook` troca de um para o outro.
+
 Para remover: `claudinho uninstall`. O `settings.json` original fica salvo em
 `~/.claude/settings.json.claudinho.bak`.
 
@@ -43,6 +48,9 @@ serve.
 
 - A cota de 5h e da semana só aparece com login de assinatura (Pro ou Max). Com chave de API, a
   tela mostra `Cota indisponível`; contexto e custo continuam aparecendo.
+- No modo `--hook` a tela mostra o modelo, o contexto e o projeto, com `Cota indisponível`: o
+  transcript não traz a cota nem o custo. O contexto é estimado sobre uma janela de 200 mil
+  tokens, que passa a 1 milhão quando o uso passa disso.
 - A placa só vê o uso quando o Claude Code responde. Conversas no claude.ai ou no app gastam da
   mesma cota, mas só entram na conta na próxima resposta do Claude Code. Se você usa os dois
   juntos, trate o % da placa como um mínimo. O selo laranja `há N min` avisa que o número está

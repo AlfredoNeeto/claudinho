@@ -23,6 +23,12 @@ switch (args.FirstOrDefault())
             (int)TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalMinutes,
             () => BridgeHost.Running(MutexName), StartBridge);
 
+    case "hook":
+        return Hook.Run(Console.In.ReadToEnd(), snapshot,
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            (int)TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalMinutes,
+            () => BridgeHost.Running(MutexName), StartBridge);
+
     case "bridge":
         Action<string> logLine = line => File.AppendAllText(log, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {line}\n");
         var ble = new BleFinder(Ble.Available, Ble.Scan, logLine);
@@ -30,7 +36,7 @@ switch (args.FirstOrDefault())
         return BridgeHost.Run(MutexName, log, bridge, () => DateTime.UtcNow, () => Thread.Sleep(250));
 
     case "install":
-        return Installer.Install(Environment.ProcessPath!, appDir, settings, home, args.Contains("--force"), Console.Out);
+        return Installer.Install(Environment.ProcessPath!, appDir, settings, home, args.Contains("--force"), args.Contains("--hook"), Console.Out);
 
     case "uninstall":
         return Installer.Uninstall(appDir, settings, StopBridge, Console.Out);
@@ -40,7 +46,7 @@ switch (args.FirstOrDefault())
         return 0;
 
     default:
-        Console.WriteLine("uso: claudinho statusline | bridge | install [--force] | uninstall | --version");
+        Console.WriteLine("uso: claudinho statusline | hook | bridge | install [--hook] [--force] | uninstall | --version");
         return 2;
 }
 

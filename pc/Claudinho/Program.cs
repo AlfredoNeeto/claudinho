@@ -32,7 +32,8 @@ switch (args.FirstOrDefault())
     case "bridge":
         Action<string> logLine = line => File.AppendAllText(log, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {line}\n");
         var ble = new BleFinder(Ble.Available, Ble.Scan, logLine);
-        var bridge = new Bridge(() => Snapshot.Read(snapshot), () => Board.Connect(Board.Usb, ble.Find), logLine);
+        var usage = new Usage(() => Snapshot.Read(Path.Combine(claudeDir, ".credentials.json")), Usage.Fetch, logLine);
+        var bridge = new Bridge(() => usage.Merge(Snapshot.Read(snapshot), DateTime.UtcNow), () => Board.Connect(Board.Usb, ble.Find), logLine);
         return BridgeHost.Run(MutexName, log, bridge, () => DateTime.UtcNow, () => Thread.Sleep(250));
 
     case "install":

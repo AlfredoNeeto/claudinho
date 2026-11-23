@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\tools\fixtures\usage.json" Link="fixtures\usage.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Claudinho\Claudinho.csproj" />
   </ItemGroup>
 

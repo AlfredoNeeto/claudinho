@@ -1,0 +1,9 @@
+.playwright-mcp/
+bin/
+obj/
+.pio/
+*.user
+firmware/.pio/
+pc/**/bin/
+pc/**/obj/
+dist/

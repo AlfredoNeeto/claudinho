@@ -1,0 +1,74 @@
+Características do produto
+Características principais
+Marca
+	ESP32
+Modelo
+	ESP32-2432S028R
+Outros
+Microcontrolador
+	Esp32-wroon-32
+Tensão de operação
+	5V
+Frequência do relógio
+	240 MHz
+Capacidade da memória flash
+	32 KB
+Capacidade SRAM
+	520 KB
+Quantidade de entradas análogicas
+	9
+Quantidade de pinos digitais de entrada e saída
+	9
+Inclui cabo USB
+	Sim
+Peso e dimensões
+Comprimento x Largura x Altura
+	8.6 cm x 9.5 cm x 6 cm
+Peso
+	61 g
+
+
+---------------
+
+Crie projetos eletrônicos com muito mais praticidade usando esta placa ESP32 com tela touchscreen de 2.8 polegadas. Ela já vem com display integrado, Wi-Fi e Bluetooth, sendo ideal para automação, IoT, painéis de controle, menus interativos, sensores e protótipos com Arduino.
+
+Com processador dual-core de até 240 MHz, a placa oferece ótimo desempenho para desenvolver interfaces gráficas, controlar dispositivos e visualizar informações diretamente na tela, sem precisar comprar um display separado.
+
+Destaques do produto:
+
+ESP32 com Wi-Fi e Bluetooth integrados
+Tela TFT LCD colorida de 2.8”
+Touchscreen resistivo
+Ideal para Arduino, IoT e automação
+Compatível com projetos LVGL
+Suporte a UART, SPI, I2C, PWM, ADC e DAC
+Ótimo para dashboards, menus, sensores e controles
+Produto compacto, versátil e fácil de aplicar em projetos
+
+Indicado para:
+
+Projetos com Arduino e ESP32
+Automação residencial
+Painel de controle com tela touch
+Monitoramento de sensores
+Projetos IoT
+Protótipos eletrônicos
+Estudos, testes e desenvolvimento profissional
+
+Especificações:
+
+Tela: TFT LCD 2.8”
+Conectividade: Wi-Fi 802.11 b/g/n e Bluetooth
+Processador: Dual-core 32 bits
+Frequência: até 240 MHz
+Memória SRAM: 520 KB
+Flash: 32 Mbit
+Tensão de trabalho: 4,75 V a 5,25 V
+Compatibilidade: Arduino IDE, FreeRTOS e LVGL
+
+Conteúdo da embalagem:
+
+1x Placa ESP32 com Tela Touch TFT LCD 2.8”
+1x Cabo
+1x Caneta
+1x Caixa plástico do produto (não é um case)

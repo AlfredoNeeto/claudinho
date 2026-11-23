@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Claudinho Painel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf9f5;--fg:#141413;--muted:#6f6d66;--card:#fff;--line:#e8e6dc;--accent:#d97757}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141413;--fg:#faf9f5;--muted:#b0aea5;--card:#1f1e1c;--line:#2e2d2a}}
+:root[data-theme=dark]{--bg:#141413;--fg:#faf9f5;--muted:#b0aea5;--card:#1f1e1c;--line:#2e2d2a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 Poppins,system-ui,sans-serif}
+main{max-width:1240px;margin:0 auto;padding:32px 16px 56px}
+h1{font:500 34px Lora,serif;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--accent)}
+h2{font:500 22px Lora,serif;margin:40px 0 12px}
+p.sub{margin:4px 0 28px;color:var(--muted);font-size:14px;max-width:70ch}
+.stage{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-end}
+figure{margin:0}
+figcaption{margin-top:10px;color:var(--muted);font-size:13px}
+figcaption b{color:var(--fg);font-weight:500}
+canvas{display:block;max-width:100%;height:auto}
+.cyd{background:linear-gradient(#f4cf55,#e9bd3a);padding:14px 44px 14px 14px;border-radius:8px;position:relative;box-shadow:0 10px 30px -12px rgba(0,0,0,.35)}
+.cyd::after{content:"";position:absolute;right:13px;top:50%;width:18px;height:30px;margin-top:-15px;background:#c9c6bd;border-radius:3px}
+.cyd canvas{width:640px;image-rendering:pixelated}
+.amoled{background:#0b0b0a;padding:18px;border-radius:30px;border:1px solid #2a2926;box-shadow:0 14px 40px -14px rgba(0,0,0,.5)}
+.amoled canvas{width:436px;border-radius:6px}
+.panel{margin-top:32px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 24px}
+.panel h3{grid-column:1/-1;margin:4px 0 -4px;font:500 13px Poppins;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.panel label{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)}
+.panel label b{color:var(--fg);font-weight:500}
+.panel input[type=range]{width:100%;accent-color:var(--accent)}
+.panel input[type=checkbox]{accent-color:var(--accent)}
+.btns{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.btns button{font:inherit;font-size:14px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.btns button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btns button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.why div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.why b{display:block;font-weight:600;margin-bottom:2px}
+.why span{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>Claudinho <span>·</span> monitor de cota</h1>
+<p class="sub">As duas telas estão em escala física relativa: a AMOLED de 2,16" é bem menor que a CYD de 2,8", e por isso usa menos informação e letras maiores em pixels. Use os cenários abaixo para ver como o Clawd e a frase de status respondem.</p>
+
+<div class="stage">
+  <figure><div class="cyd"><canvas id="cyd" width="320" height="240"></canvas></div>
+    <figcaption><b>Hoje</b> · CYD 2,8" · 320×240 · ~57×43 mm · cabo USB</figcaption></figure>
+  <figure><div class="amoled"><canvas id="amo" width="480" height="480"></canvas></div>
+    <figcaption><b>Futuro</b> · AMOLED 2,16" · 480×480 · ~39×39 mm · BLE + bateria</figcaption></figure>
+</div>
+
+<div class="panel">
+  <h3>Gráfico</h3>
+  <div class="btns" id="style" role="group" aria-label="Tipo de gráfico">
+    <button data-s="barras" aria-pressed="true">Barras</button>
+    <button data-s="aneis">Anéis</button>
+  </div>
+  <h3>Cenários</h3>
+  <div class="btns" id="presets" role="group" aria-label="Cenários">
+    <button data-p="calmo" aria-pressed="true">Tranquilo</button>
+    <button data-p="rapido">Ritmo acelerado</button>
+    <button data-p="quase">Quase no limite</button>
+    <button data-p="limite">Limite atingido</button>
+    <button data-p="renovou">Renovou agora</button>
+    <button data-p="semcota">Login sem cota</button>
+  </div>
+  <h3>Estado da placa</h3>
+  <div class="btns" id="modes" role="group" aria-label="Estado da placa">
+    <button data-m="normal" aria-pressed="true">Recebendo dados</button>
+    <button data-m="stale">Sem atualização há 7 min</button>
+    <button data-m="aguardando">Aguardando (boot)</button>
+    <button data-m="protocolo">Protocolo novo</button>
+  </div>
+  <h3>Ajuste fino</h3>
+  <label>Sessão 5h usada <b id="o-h5"></b><input id="h5" type="range" min="0" max="100" step="0.5"></label>
+  <label>Sessão renova em <b id="o-h5m"></b><input id="h5m" type="range" min="0" max="300"></label>
+  <label>Semana usada <b id="o-d7"></b><input id="d7" type="range" min="0" max="100"></label>
+  <label>Semana renova em <b id="o-d7h"></b><input id="d7h" type="range" min="0" max="168"></label>
+  <label>Contexto <b id="o-ctx"></b><input id="ctx" type="range" min="0" max="100"></label>
+  <label>Custo da sessão <b id="o-usd"></b><input id="usd" type="range" min="0" max="50" step="0.01"></label>
+  <label><span><input id="fast" type="checkbox" checked> acelerar o tempo (1 s = 1 min)</span></label>
+</div>
+
+<h2>Por que está assim</h2>
+<div class="why">
+  <div><b>Uma pergunta por olhada</b><span>A tela responde "vou bater no limite?" numa frase ("Tranquilo", "Ritmo acelerado"). Os números ficam abaixo, para quem quiser o detalhe.</span></div>
+  <div><b>Rosto antes de número</b><span>O cérebro lê expressão facial antes de ler texto. O Clawd muda de postura com o risco (braços para cima, suor, olhos &gt; &lt;) e funciona até na visão periférica.</span></div>
+  <div><b>Cor só quando importa</b><span>As barras são creme; o laranja aparece só quando há risco. Se tudo for laranja, nada se destaca (efeito Von Restorff). O Clawd mantém a marca na tela o tempo todo.</span></div>
+  <div><b>Barras ou anéis</b><span>Barras comparam melhor: comprimento numa escala comum é mais preciso que ângulo (Cleveland &amp; McGill) e cabem na tela deitada. Anéis preenchem melhor a tela quadrada e destacam o número. Os dois usam o mesmo marcador de ritmo e as mesmas cores.</span></div>
+  <div><b>Âncora de ritmo</b><span>A faixa mais clara vai até onde o tempo da janela já chegou, e a bolinha marca esse ponto. Uso além da bolinha é gastar mais rápido que o tempo. A frase projeta: "nesse ritmo, acaba em 1h01".</span></div>
+  <div><b>Tecnologia calma</b><span>Em situação normal, nada se mexe além de uma piscada a cada poucos segundos. Movimento atrai o olho, então só aparece quando há algo a fazer.</span></div>
+  <div><b>Fim memorável (pico-fim)</b><span>A renovação ganha uma pequena comemoração. Ao bater o limite, a tela informa quando volta, em vez de só mostrar 100% vermelho.</span></div>
+  <div><b>Mesmo vocabulário do Claude</b><span>"Sessão" e "Semana" em % usado, como no <code>/usage</code>. Nada para traduzir de cabeça (lei de Jakob).</span></div>
+  <div><b>Dado velho não engana</b><span>O horário da última leitura fica sempre no mesmo canto. Quando passa de 3 min, os números esmaecem e o horário fica laranja.</span></div>
+  <div><b>Tamanho físico, não pixel</b><span>Na AMOLED, 1 px mede 0,08 mm, contra 0,18 mm na CYD. Para ler a ~60 cm, as fontes da AMOLED são ~2× maiores em pixels e mostram menos itens.</span></div>
+</div>
+</main>
+
+<script>
+const C = { bg:"#141413", ivory:"#faf9f5", cream:"#e8e6dc", muted:"#b0aea5", dim:"#7a786f", track:"#2b2a27", ghost:"#45423c",
+            orange:"#d97757", green:"#8fa874", blue:"#6a9bcc", black:"#000" };
+const SERIF="Lora", SANS="Poppins";
+
+// Clawd em pixels quadrados: corpo 10x6, braços nas linhas 3-4, quatro pernas finas, olhos pretos 1x2.
+const BODY    = ["..##########..","..##########..","..##########..","##############","##############","..##########.."];
+const BODY_UP = ["#.##########.#","#.##########.#","##############","..##########..","..##########..","..##########.."];
+const LEG_COLS=[3,5,8,10];
+
+function clawd(c, x, y, u, mood, t){
+  let dy=0;
+  if(mood==="happy") dy = -Math.abs(Math.sin(t*7))*u*1.6;
+  if(mood==="alarm") dy = (Math.floor(t*3)%2) ? -u*0.5 : 0;
+  y=Math.round(y+dy);
+  const rows = (mood==="alarm"||mood==="happy") ? BODY_UP : BODY;
+  c.fillStyle=C.orange;
+  rows.forEach((r,j)=>{ for(let i=0;i<14;i++) if(r[i]==="#") c.fillRect(x+i*u, y+j*u, u, u); });
+  const step = mood==="alarm" ? Math.floor(t*6)%2 : -1;
+  LEG_COLS.forEach((col,i)=>{ const lift = (step>=0 && i%2===step) ? u : 0; c.fillRect(x+col*u, y+6*u, u, 3*u-lift); });
+  // olhos
+  c.fillStyle=C.black; const h=u/2, E=[[x+4*u,y+u],[x+9*u,y+u]];
+  const blink = (t%5.5) < 0.16;
+  E.forEach(([ex,ey],k)=>{
+    if(mood==="sleep") c.fillRect(ex-h/2, ey+1.4*u, u+h, h*0.8);
+    else if(mood==="squint"){ const px = k===0 ? [[0,0],[1,1],[0,2]] : [[1,0],[0,1],[1,2]]; px.forEach(([a,b])=>c.fillRect(ex+a*h, ey+h*0.5+b*h, h, h)); }
+    else if(mood==="happy") c.fillRect(ex, ey, u, u);
+    else if(blink) c.fillRect(ex, ey+1.25*u, u, h*0.7);
+    else c.fillRect(ex, ey, u, 2*u);
+  });
+  if(mood==="alarm") sweat(c, x+14.6*u, y+0.2*u, u, t);
+  if(mood==="sleep") zzz(c, x+13*u, y, u*2.2, t);
+  if(mood==="happy") sparkles(c, x, y, u, t);
+  if(mood==="confused") T(c,"?", x+14.5*u, y+2.2*u, u*3, {f:SERIF, w:500, color:C.orange});
+}
+function sweat(c,x,y,u,t){
+  const k=(t*0.9)%1; c.globalAlpha=1-k; c.fillStyle=C.blue; const yy=y+k*u*2.5, r=u*0.42;
+  c.beginPath(); c.arc(x, yy+r, r, 0, Math.PI*2); c.fill();
+  c.beginPath(); c.moveTo(x-r, yy+r); c.lineTo(x, yy-r*1.4); c.lineTo(x+r, yy+r); c.fill(); c.globalAlpha=1;
+}
+function zzz(c,x,y,size,t){
+  for(let i=0;i<3;i++){ const k=((t*0.35)+i/3)%1; c.globalAlpha=Math.sin(k*Math.PI);
+    T(c,"z", x+k*size*1.3, y-k*size*1.8, size*(0.6+k*0.5), {f:SERIF,w:500,color:C.muted}); }
+  c.globalAlpha=1;
+}
+function sparkles(c,x,y,u,t){
+  const pts=[[-2,1],[16,0],[-1,6],[15.5,6.5],[7,-2.5]];
+  pts.forEach(([a,b],i)=>{ const k=(t*1.4+i*0.23)%1; c.globalAlpha=Math.sin(k*Math.PI); c.fillStyle=i%2?C.cream:C.orange;
+    const s=u*(0.5+k*0.6), cx=x+a*u, cy=y+b*u; c.fillRect(cx-s/2, cy-s*1.5, s, s*3); c.fillRect(cx-s*1.5, cy-s/2, s*3, s); });
+  c.globalAlpha=1;
+}
+
+// ---- estado ----
+const S = { style:"barras", m:"normal",h5:18, h5m:160, d7:31, d7h:100, ctx:37, tok:152000, usd:4.12, model:"Opus", proj:"monitor", stale:7, quota:true };
+const D = { h5:0, d7:0 };
+let celebrateUntil=-1, T0=performance.now(), NOW=0;
+
+const dur = m => { m=Math.max(0,Math.round(m)); return m<60 ? `${m} min` : m<1440 ? `${Math.floor(m/60)}h${String(m%60).padStart(2,"0")}` : `${Math.floor(m/1440)}d ${Math.floor(m%1440/60)}h`; };
+const pct = p => `${Math.round(p)}%`;
+const brl = n => n.toFixed(2).replace(".",",");
+const tok = t => t>=1e6 ? `${brl(t/1e6).replace(/,?0+$/,"")}M` : `${Math.round(t/1000)}k`;
+function weekday(minFromNow){
+  const d=new Date(Date.now()+minFromNow*60000);
+  const wd=d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","");
+  return `${wd} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+const clock = () => { const d=new Date(); return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+
+function win(used, rem, len){
+  if(rem<=0) return { used:0, rem:0, pace:0, renewed:true };
+  const el=len-rem, pace=el/len*100;
+  let exhaust=null;
+  if(used>0 && used<100 && el>0){ const tf=(100-used)/(used/el); if(tf<rem) exhaust=tf; }
+  return { used, rem, pace, exhaust, limit: used>=100 };
+}
+function status(t){
+  // a lógica usa o valor real; só a barra usa o valor animado (disp)
+  const a=win(S.h5,S.h5m,300), b=win(S.d7,S.d7h*60,10080);
+  a.disp=a.renewed?0:D.h5; b.disp=b.renewed?0:D.d7;
+  a.reset = a.renewed ? "renovada ✓" : `renova em ${dur(a.rem)}`;
+  b.reset = b.renewed ? "renovada ✓" : `renova ${weekday(b.rem)}`;
+  const base={a,b};
+  if(t<celebrateUntil) return {...base, k:"party", title:"Cota renovada!", sub:"a sessão de 5h zerou"};
+  if(!S.quota) return {...base, k:"noquota", title:"Cota indisponível", sub:"este login não informa 5h e 7d"};
+  const w=[a,b];
+  const lim=w.find(x=>x.limit); if(lim) return {...base, k:"limit", title:"Limite atingido", sub:`volta em ${dur(lim.rem)}`};
+  const ex=w.filter(x=>x.exhaust!=null).sort((p,q)=>p.exhaust-q.exhaust)[0];
+  if(ex) return {...base, k:"fast", title:"Ritmo acelerado", sub:`nesse ritmo, acaba em ${dur(ex.exhaust)}`};
+  const hi=w.find(x=>x.used>=80); if(hi) return {...base, k:"high", title:"Quase no limite", sub:`restam ${Math.round(100-hi.used)}% até renovar`};
+  return {...base, k:"calm", title:"Tranquilo", sub:"nesse ritmo, sobra cota"};
+}
+const hot = k => k==="limit"||k==="fast"||k==="high";
+function moodOf(st){
+  if(S.m==="aguardando") return "sleep";
+  if(S.m==="protocolo") return "confused";
+  return { party:"happy", limit:"squint", fast:"alarm", high:"alarm" }[st.k] || "idle";
+}
+const risky = w => w.limit || w.exhaust!=null || w.used>=80;
+
+// ---- desenho ----
+function T(c, s, x, y, size, o={}){
+  c.font=`${o.w||400} ${size}px ${o.f||SANS}`; c.fillStyle=o.color||C.ivory;
+  c.textAlign=o.a||"left"; c.textBaseline="alphabetic"; c.fillText(s, x, y); return c.measureText(s).width;
+}
+function rr(c,x,y,w,h,r,color){ c.fillStyle=color; c.beginPath(); c.roundRect(x,y,w,h,r); c.fill(); }
+function bar(c,x,y,w,h,wv,limitPulse,t){
+  rr(c,x,y,w,h,h/2,C.track);
+  if(!S.quota || wv.renewed) return;
+  const p=Math.min(wv.disp,100)/100;
+  let col = risky(wv) ? C.orange : C.cream;
+  const pace = wv.limit ? 0 : wv.pace/100;
+  if(pace>0) rr(c,x,y,Math.max(h,w*pace),h,h/2,C.ghost); // faixa do ritmo: onde você estaria gastando no ritmo do tempo
+  if(wv.limit) c.globalAlpha = 0.65+0.35*Math.sin(t*2.4);
+  if(p>0) rr(c,x,y,Math.max(h,w*p),h,h/2,col);
+  c.globalAlpha=1;
+  if(pace>0) bead(c, x+Math.max(h/2,Math.min(w-h/2,w*pace)), y+h/2, h*0.27, p>=pace);
+}
+// bolinha do ritmo: furo escuro sobre a parte usada, ponto claro sobre o trilho
+function bead(c,x,y,r,onFill){ c.fillStyle = onFill ? C.bg : C.ivory; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill(); }
+function row(c, x, y, w, label, wv, k, t, fade){
+  c.globalAlpha=fade;
+  T(c, label, x, y+k.lab, k.lab, {w:500, color:C.muted});
+  T(c, S.quota ? pct(wv.used) : "--", x+w, y+k.numY, k.num, {w:600, a:"right", color: S.quota && risky(wv) ? C.orange : C.ivory});
+  c.globalAlpha=1;
+  bar(c, x, y+k.barY, w, k.barH, wv, true, t);
+  c.globalAlpha=fade;
+  T(c, S.quota ? wv.reset : "indisponível neste login", x, y+k.resetY, k.small, {color: wv.renewed && S.quota ? C.green : C.muted});
+  c.globalAlpha=1;
+}
+function ring(c, cx, cy, label, wv, g, t, fade){
+  c.lineCap="round"; c.lineWidth=g.sw; c.strokeStyle=C.track;
+  c.beginPath(); c.arc(cx,cy,g.r,0,Math.PI*2); c.stroke();
+  if(S.quota && !wv.renewed){
+    const p=Math.min(wv.disp,100)/100, top=-Math.PI/2, pace = wv.limit ? 0 : wv.pace/100;
+    if(pace>0.005){ c.strokeStyle=C.ghost; c.beginPath(); c.arc(cx,cy,g.r,top,top+Math.PI*2*pace); c.stroke(); }
+    if(p>0.005){
+      if(wv.limit) c.globalAlpha = 0.65+0.35*Math.sin(t*2.4);
+      c.strokeStyle = risky(wv) ? C.orange : C.cream;
+      c.beginPath(); c.arc(cx,cy,g.r,top,top+Math.PI*2*p); c.stroke(); c.globalAlpha=1;
+    }
+    if(pace>0.005){ const a=top+Math.PI*2*pace; bead(c, cx+Math.cos(a)*g.r, cy+Math.sin(a)*g.r, g.sw*0.27, p>=pace); }
+  }
+  c.globalAlpha=fade;
+  T(c, label, cx, cy-g.num*0.55, g.lab, {w:500, a:"center", color:C.muted});
+  T(c, S.quota ? pct(wv.used) : "--", cx, cy+g.num*0.55, g.num, {w:600, a:"center", color: S.quota && risky(wv) ? C.orange : C.ivory});
+  T(c, S.quota ? wv.reset : "indisponível", cx, cy+g.resetDy, g.small, {a:"center", color: wv.renewed && S.quota ? C.green : C.muted});
+  c.globalAlpha=1;
+}
+function fresh(c, xr, y, size){
+  const live=S.m!=="stale", label= live ? clock() : `há ${S.stale} min`;
+  c.font=`500 ${size}px ${SANS}`; const w=c.measureText(label).width;
+  c.fillStyle= live ? C.green : C.orange; c.beginPath(); c.arc(xr-w-size*0.6, y-size*0.33, size*0.25, 0, Math.PI*2); c.fill();
+  T(c, label, xr, y, size, {w:500, a:"right", color: live ? C.muted : C.orange});
+}
+function splash(c, W, H, u, big, small, t){
+  const mood=S.m==="aguardando"?"sleep":"confused", x=Math.round(W/2-7*u), y=Math.round(H*0.4-9*u);
+  clawd(c,x,y,u,mood,t);
+  const [a,b] = S.m==="aguardando" ? ["Esperando o Claude Code","abra uma sessão no terminal"] : ["Firmware desatualizado","o PC mandou o protocolo v2"];
+  T(c,a,W/2,y+9*u+big*1.7,big,{f:SERIF,w:500,a:"center"});
+  T(c,b,W/2,y+9*u+big*1.7+small*1.6,small,{a:"center",color:C.muted});
+}
+
+function drawCYD(c,t){
+  const W=320,H=240; c.fillStyle=C.bg; c.fillRect(0,0,W,H);
+  if(S.m==="aguardando"||S.m==="protocolo") return splash(c,W,H,6,19,12,t);
+  const st=status(t), fade=S.m==="stale"?0.45:1;
+  clawd(c,16,20,6,moodOf(st),t);
+  T(c, st.title, 112, 46, 22, {f:SERIF, w:500, color: hot(st.k)?C.orange : st.k==="party"?C.green : C.ivory});
+  T(c, st.sub, 112, 66, 12, {color:C.muted});
+  T(c, `${S.model} · ${S.proj}`, 112, 83, 10, {color:C.dim});
+  if(S.style==="aneis"){
+    const g={r:36,sw:8,lab:10,num:20,small:11,resetDy:54};
+    ring(c,84,150,"Sessão",st.a,g,t,fade); ring(c,236,150,"Semana",st.b,g,t,fade);
+  } else {
+    const k={lab:12,num:26,numY:20,barY:27,barH:10,resetY:51,small:11};
+    row(c,14,96,292,"Sessão",st.a,k,t,fade);
+    row(c,14,158,292,"Semana",st.b,k,t,fade);
+  }
+  c.fillStyle=C.track; c.fillRect(14,215,292,1);
+  c.globalAlpha=fade;
+  let x=14; x+=T(c,"contexto ",x,233,11,{color:C.dim}); x+=T(c,pct(S.ctx),x,233,11,{w:500,color:C.muted});
+  x+=T(c,"   custo ",x,233,11,{color:C.dim}); T(c,"US$ "+brl(S.usd),x,233,11,{w:500,color:C.muted});
+  c.globalAlpha=1;
+  fresh(c,306,233,11);
+}
+
+function drawAMO(c,t){
+  const W=480,H=480; c.fillStyle=C.bg; c.fillRect(0,0,W,H);
+  if(S.m==="aguardando"||S.m==="protocolo") return splash(c,W,H,12,34,22,t);
+  const st=status(t), fade=S.m==="stale"?0.45:1;
+  clawd(c,Math.round(W/2-7*11),26,11,moodOf(st),t);
+  T(c, st.title, W/2, 168, 40, {f:SERIF, w:500, a:"center", color: hot(st.k)?C.orange : st.k==="party"?C.green : C.ivory});
+  T(c, st.sub, W/2, 204, 24, {a:"center", color:C.muted});
+  if(S.style==="aneis"){
+    const g={r:70,sw:16,lab:20,num:42,small:20,resetDy:104};
+    ring(c,128,326,"Sessão",st.a,g,t,fade); ring(c,352,326,"Semana",st.b,g,t,fade);
+  } else {
+    const k={lab:24,num:46,numY:34,barY:46,barH:18,resetY:96,small:22};
+    row(c,32,228,416,"Sessão",st.a,k,t,fade);
+    row(c,32,340,416,"Semana",st.b,k,t,fade);
+  }
+  fresh(c,448,464,20);
+  c.globalAlpha=fade; T(c,`contexto ${pct(S.ctx)}`,32,464,20,{color:C.dim}); c.globalAlpha=1;
+}
+
+const cyd=document.getElementById("cyd").getContext("2d"), amo=document.getElementById("amo").getContext("2d");
+function frame(now){
+  const t=Math.max(0,(now-T0)/1000); NOW=t;
+  D.h5+=(S.h5-D.h5)*0.12; D.d7+=(S.d7-D.d7)*0.12;
+  drawCYD(cyd,t); drawAMO(amo,t);
+  requestAnimationFrame(frame);
+}
+
+// ---- controles ----
+const PRESETS = {
+  calmo:   {h5:18, h5m:160, d7:31, d7h:100, ctx:37, usd:4.12, quota:true},
+  rapido:  {h5:62, h5m:200, d7:45, d7h:90,  ctx:58, usd:9.80, quota:true},
+  quase:   {h5:86, h5m:25,  d7:64, d7h:30,  ctx:82, usd:18.40, quota:true},
+  limite:  {h5:100,h5m:48,  d7:71, d7h:30,  ctx:44, usd:21.05, quota:true},
+  semcota: {h5:0,  h5m:160, d7:0,  d7h:100, ctx:37, usd:4.12, quota:false},
+};
+const ids=["h5","h5m","d7","d7h","ctx","usd"];
+function out(){
+  const f={h5:pct(S.h5),h5m:S.h5m?dur(S.h5m):"agora",d7:pct(S.d7),d7h:S.d7h?dur(S.d7h*60):"agora",ctx:pct(S.ctx),usd:"US$ "+brl(S.usd)};
+  for(const k of ids){ document.getElementById("o-"+k).textContent=f[k]; document.getElementById(k).value=S[k]; }
+}
+function press(groupId, btn){ document.querySelectorAll(`#${groupId} button`).forEach(x=>x.setAttribute("aria-pressed", x===btn)); }
+function renew(){ S.h5=0; D.h5=0; S.h5m=300; celebrateUntil=NOW+4.5; }
+document.querySelectorAll("#presets button").forEach(b=>b.addEventListener("click",()=>{
+  press("presets",b);
+  if(b.dataset.p==="renovou"){ Object.assign(S,PRESETS.calmo); renew(); }
+  else Object.assign(S,PRESETS[b.dataset.p]);
+  out();
+}));
+document.querySelectorAll("#style button").forEach(b=>b.addEventListener("click",()=>{ press("style",b); S.style=b.dataset.s; }));
+document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{ press("modes",b); S.m=b.dataset.m; }));
+for(const k of ids) document.getElementById(k).addEventListener("input",e=>{ S[k]=+e.target.value; out(); });
+
+// Contagem regressiva local, como o firmware faz entre uma linha e outra.
+let acc=0;
+setInterval(()=>{
+  acc += document.getElementById("fast").checked ? 60 : 1;
+  if(acc<60) return; acc-=60;
+  if(S.h5m>0){ S.h5m--; if(S.h5m===0) renew(); }
+  if(S.h5m%60===0 && S.d7h>0) S.d7h--;
+  out();
+},1000);
+
+out();
+Promise.all(["400 12px Poppins","500 12px Poppins","600 12px Poppins","500 12px Lora"].map(f=>document.fonts.load(f)))
+  .finally(()=>requestAnimationFrame(frame));
+</script>
+</body>
+</html>

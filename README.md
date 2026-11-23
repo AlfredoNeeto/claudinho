@@ -4,7 +4,7 @@ Monitor de mesa da cota do Claude Code: uma ESP32 com tela mostra o uso da sess�
 semana, quanto falta para renovar e se você está gastando rápido demais. O Clawd na tela muda de
 pose conforme o risco.
 
-Os dados vêm só da barra de status do Claude Code (sem token, sem rede) e chegam à placa pelo cabo
+Os dados vêm da barra de status do Claude Code (ou de um hook, veja abaixo) e chegam à placa pelo cabo
 USB ou por Bluetooth. Pelo Bluetooth basta a placa estar numa fonte USB na tomada, a poucos metros
 do PC: o bridge procura primeiro no USB e, se não achar, procura por Bluetooth, sem parear. Pelo
 Bluetooth o nome da pasta do projeto não é enviado. Plano completo em `.specs/features/claudinho/plan.md`; prévia da tela em `design/painel.html`.
@@ -46,13 +46,19 @@ serve.
 
 ## Limites que valem saber
 
-- A cota de 5h e da semana só aparece com login de assinatura (Pro ou Max). Com chave de API, a
+- A cota de 5h e da semana só aparece com login de assinatura. No Pro e no Max ela vem na barra
+  de status. No Team, e no modo `--hook`, ela não vem: o bridge então consulta o mesmo endpoint
+  que o `/usage` do Claude Code usa (`api.anthropic.com/api/oauth/usage`), no máximo a cada 5 min,
+  com o token que o Claude Code já guarda em `~/.claude/.credentials.json`. O bridge só lê esse
+  arquivo; nunca grava, renova ou registra o token. O endpoint não é documentado: se ele falhar ou
+  mudar, a tela volta para `Cota indisponível` em até 15 min. No PC da empresa, confirme com o
+  admin antes de deixar isso rodando, porque o token é da conta da empresa. Com chave de API, a
   tela mostra `Cota indisponível`; contexto e custo continuam aparecendo.
-- No modo `--hook` a tela mostra o modelo, o contexto e o projeto, com `Cota indisponível`: o
-  transcript não traz a cota nem o custo. O contexto é estimado sobre uma janela de 200 mil
-  tokens, que passa a 1 milhão quando o uso passa disso.
+- No modo `--hook` o custo não aparece: o transcript não traz. O contexto é estimado sobre uma
+  janela de 200 mil tokens, que passa a 1 milhão quando o uso passa disso.
 - A placa só vê o uso quando o Claude Code responde. Conversas no claude.ai ou no app gastam da
   mesma cota, mas só entram na conta na próxima resposta do Claude Code. Se você usa os dois
   juntos, trate o % da placa como um mínimo. O selo laranja `há N min` avisa que o número está
-  parado.
+  parado. Quando a cota vem do endpoint do `/usage`, ela se atualiza sozinha a cada 5 min enquanto
+  o bridge está rodando, mesmo sem resposta do Claude Code.
 - O Clawd e a paleta são da Anthropic: projeto de uso pessoal, não publique nem venda com eles.

@@ -72,12 +72,66 @@ void test_hello_and_full_line() {
   TEST_ASSERT_EQUAL_STRING("relatório", out.proj);
 }
 
+static const char* kFull =
+    "{\"v\":1,\"t\":1763870000,\"tz\":-180,\"h5\":[23.5,1763880000],\"d7\":[41,1764300000],"
+    "\"ctx\":37,\"tok\":152340,\"usd\":4.12,\"m\":\"Opus\"}";
+
+// C2, C4: pelo BLE a linha chega em pedaços (escritas na RX); o leitor junta igual
+void test_chunked_line() {
+  const size_t sizes[] = {1, 20, 182};
+  for (size_t size : sizes) {
+    LineReader r;
+    char buf[600];
+    int n = snprintf(buf, sizeof buf, "%s\n", kFull);
+    int lines = 0;
+    for (int i = 0; i < n; i += size) {
+      for (int j = i; j < n && j < i + (int)size; j++) lines += r.feed(buf[j]);
+    }
+    TEST_ASSERT_EQUAL(1, lines);
+    TEST_ASSERT_EQUAL_STRING(kFull, r.line());
+    Line out;
+    int ver = 0;
+    TEST_ASSERT_EQUAL((int)Parse::Ok, (int)parse_line(r.line(), out, ver));
+    TEST_ASSERT_EQUAL_STRING("", out.proj);  // door 3: sem p pelo ar
+  }
+
+  // 513 bytes em pedaços de 20 sem '\n': some inteira, a próxima linha boa passa
+  LineReader r;
+  bool got = false;
+  for (int i = 0; i < 513; i += 20)
+    for (int j = i; j < 513 && j < i + 20; j++) got |= r.feed('x');
+  got |= r.feed('\n');
+  TEST_ASSERT_FALSE(got);
+  for (const char* p = "{\"v\":1,\"t\":7}\n"; *p; p++) got = r.feed(*p);
+  TEST_ASSERT_TRUE(got);
+  TEST_ASSERT_EQUAL_STRING("{\"v\":1,\"t\":7}", r.line());
+}
+
+// C5: USB e BLE ao mesmo tempo, um leitor por origem
+void test_interleaved_origins() {
+  const char* a = "{\"v\":1,\"t\":111,\"m\":\"usb\"}\n";
+  const char* b = "{\"v\":1,\"t\":222,\"m\":\"ble-link\"}\n";
+  LineReader ra, rb;
+  bool gotA = false, gotB = false;
+  const size_t la = strlen(a), lb = strlen(b);
+  for (size_t i = 0; i < la || i < lb; i++) {
+    if (i < la) gotA |= ra.feed(a[i]);
+    if (i < lb) gotB |= rb.feed(b[i]);
+  }
+  TEST_ASSERT_TRUE(gotA);
+  TEST_ASSERT_TRUE(gotB);
+  TEST_ASSERT_EQUAL_STRING("{\"v\":1,\"t\":111,\"m\":\"usb\"}", ra.line());
+  TEST_ASSERT_EQUAL_STRING("{\"v\":1,\"t\":222,\"m\":\"ble-link\"}", rb.line());
+}
+
 void setup() {
   delay(2000);
   UNITY_BEGIN();
   RUN_TEST(test_rejects_bad_lines);
   RUN_TEST(test_unknown_version);
   RUN_TEST(test_hello_and_full_line);
+  RUN_TEST(test_chunked_line);
+  RUN_TEST(test_interleaved_origins);
   UNITY_END();
 }
 

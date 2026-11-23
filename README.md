@@ -23,11 +23,13 @@ No **PowerShell** (o Git Bash quebra o instalador da Espressif):
 
 ```powershell
 python -m pip install platformio
+# coloque a CYD em modo de gravação: segure BOOT, toque RST, solte BOOT (a tela fica preta)
 python -m platformio run -d firmware -e cyd -t upload
 ```
 
-Se aparecer `Wrong boot mode detected`, segure o botão **BOOT** da placa, toque em **RST** e
-solte o BOOT logo que aparecer `Connecting...`.
+O reset automático pelo cabo desta CYD não entra no modo de gravação, por isso o passo dos botões
+vem antes de cada gravação (o `platformio.ini` já grava sem resetar antes). Feche o
+`claudinho bridge` antes: ele segura a porta.
 
 ## Limites que valem saber
 

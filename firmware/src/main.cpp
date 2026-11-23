@@ -41,6 +41,7 @@ void setup() {
   pinMode(kBacklight, OUTPUT);
   digitalWrite(kBacklight, HIGH);
   gfx->begin(40000000);
+  gfx->invertDisplay(true);  // este painel da CYD inverte as cores; sem isso o fundo sai branco e o laranja sai azul (AC 29)
   gfx->fillScreen(0x0000);
 
   lv_init();

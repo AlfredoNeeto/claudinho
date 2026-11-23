@@ -40,8 +40,9 @@ try {
 
   $bridge.Kill(); $bridge.WaitForExit()
   $bridge = Start-Process $Exe 'bridge' -PassThru -WindowStyle Hidden
-  $t = Wait-Connected 2 10
-  if ($null -eq $t) { Write-Error "o bridge novo não reconectou em 10 s. bridge.log:`n$(Get-Content $log -Raw)"; exit 1 }
+  # 30 s: morto à força, o bridge não fecha o link e o Windows o segura ~20 s até o tempo limite dele
+  $t = Wait-Connected 2 30
+  if ($null -eq $t) { Write-Error "o bridge novo não reconectou em 30 s. bridge.log:`n$(Get-Content $log -Raw)"; exit 1 }
   "OK C6: reconectou em $([math]::Round($t, 1)) s depois de o primeiro bridge cair"
   exit 0
 }

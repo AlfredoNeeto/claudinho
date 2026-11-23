@@ -3,7 +3,7 @@
 Profile: light
 Plan: `.specs/features/ble-link/plan.md`
 
-14 checks in 2 slices · 3 one-way doors · 0 open
+15 checks in 2 slices · 3 one-way doors · 0 open
 
 Comandos de prova (os mesmos do claudinho):
 
@@ -34,7 +34,7 @@ Proof: `pio test -d firmware -e cyd -f test_protocol` (caso `test_chunked_line`)
 **C5** - Dois leitores alimentados intercalados, byte a byte, com uma linha cada, devolvem as duas linhas intactas (AC 5)
 Proof: `pio test -d firmware -e cyd -f test_protocol` (caso `test_interleaved_origins`)
 
-**C6** - Encerrado o bridge conectado por BLE, um bridge novo registra `conectado: ble ` em até 10 s (busca de 5 s inclusa); no nRF Connect, a placa volta a aparecer em até 2 s depois de desconectar (AC 6)
+**C6** - Encerrado o bridge conectado por BLE, um bridge novo registra `conectado: ble ` em até 30 s (renegociado com o usuário: morto à força, o bridge não fecha o link e o Windows o segura ~20 s; era 10 s); no nRF Connect, a placa volta a aparecer em até 2 s depois de desconectar (AC 6)
 Proof: `pwsh -NoProfile -File pc/tools/ble-check.ps1`
 Proof: `manual - nRF Connect: desconectar e ver "Claudinho" de volta no Scanner em até 2 s`
 
@@ -68,6 +68,9 @@ Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~BleTests.Una
 Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~BridgeTests.Logs_link_name_on_connect"`
 Proof: `pwsh -NoProfile -File pc/tools/ble-check.ps1`
 
+**C15** - Quando abrir um candidato BLE falha, o bridge registra `ble falhou: 0x<HResult> <mensagem>`, e o mesmo motivo seguido só uma vez; depois de conectar, o mesmo motivo volta a ser registrado (AC 12, achado no build: o `0x80070016` passava calado)
+Proof: `dotnet test pc/Claudinho.Tests --filter "FullyQualifiedName~BleTests.Ble_failure_reason_logged_when_it_changes"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -75,7 +78,7 @@ Proof: `pwsh -NoProfile -File pc/tools/ble-check.ps1`
 | doors do plano (3) | door 1 (NUS) C1, C3 · door 2 (NimBLE) C1, C6 · door 3 (sem `p`) C10 | - |
 | origens de bytes no firmware (2) | USB C7 · BLE C2, C3 | - |
 | resultados da busca BLE (4) | handshake ok C9 · resposta errada C9 · sem Bluetooth C13 · USB achou antes C8 | - |
-| linhas novas e reaproveitadas do `bridge.log` (4) | `conectado: usb` C14 · `conectado: ble` C14 · `bluetooth indisponível` C13 · `porta perdida` C12 | - |
+| linhas novas e reaproveitadas do `bridge.log` (5) | `conectado: usb` C14 · `conectado: ble` C14 · `bluetooth indisponível` C13 · `porta perdida` C12 · `ble falhou` C15 | - |
 | linhas recusadas pela RX (2) | mais de 512 bytes em pedaços C4 · malformada (mesmo parser do USB) C7 | - |
 
 - C1, C3, C6, C11 e C12 dependem de rádio e de tela; a parte automática roda em `ble-check.ps1`, a visual é manual e fica com o usuário
@@ -91,7 +94,7 @@ Proof: `pwsh -NoProfile -File pc/tools/ble-check.ps1`
 - data lifecycle: n/a - nada novo é persistido
 - dependency failure: C13, C12
 - state transitions: C6, C12
-- observability: C14, C13
+- observability: C14, C13, C15
 
 ## Handoff
 
@@ -103,4 +106,5 @@ O código existente lido e alterado, mais o novo, ÷ 4:
 - Mechanism: one builder (cabe no budget)
 
 - **Settled mid-build:** no Windows 11 26300 a busca GATT com `BluetoothCacheMode.Uncached` dá `COMException 0x80070016` com a CYD; o `BleLink` tenta `Uncached` e cai para `Cached` (achado e testado pelo usuário: `ble-check.ps1` C1/C3/C14 OK em 2,3 s). Não parear o Claudinho no Windows: pareado, a mesma busca devolvia `Unreachable`
-- **Em aberto:** C6 falhou no hardware (a placa leva ~20 s para voltar a anunciar depois que o bridge morre à força, porque o Windows segura o link até o tempo limite dele; a prova pede 10 s); o `TryOpen` devolve `null` sem registrar o motivo
+- **Settled mid-build:** C6 renegociado de 10 s para 30 s (o usuário escolheu ajustar a prova, não anunciar com um PC conectado, o que mudaria a door 1); C15 novo: o motivo da falha ao abrir um candidato BLE vai para o `bridge.log`, sem repetir o mesmo motivo seguido
+- **Não testado:** se o modo `Cached` fica com a tabela GATT velha depois de regravar o firmware; o `Uncached` vem primeiro para cobrir isso

@@ -101,3 +101,6 @@ O código existente lido e alterado, mais o novo, ÷ 4:
 - S2: `Bridge.cs` 6 KB + `Program.cs` 2,5 KB + `BridgeTests.cs` ~8 KB + BLE novo ~7 KB + testes novos ~4 KB + script ~2 KB ≈ 30 KB ≈ 8k
 - Total ≈ 15k, abaixo do budget de 150k - um builder
 - Mechanism: one builder (cabe no budget)
+
+- **Settled mid-build:** no Windows 11 26300 a busca GATT com `BluetoothCacheMode.Uncached` dá `COMException 0x80070016` com a CYD; o `BleLink` tenta `Uncached` e cai para `Cached` (achado e testado pelo usuário: `ble-check.ps1` C1/C3/C14 OK em 2,3 s). Não parear o Claudinho no Windows: pareado, a mesma busca devolvia `Unreachable`
+- **Em aberto:** C6 falhou no hardware (a placa leva ~20 s para voltar a anunciar depois que o bridge morre à força, porque o Windows segura o link até o tempo limite dele; a prova pede 10 s); o `TryOpen` devolve `null` sem registrar o motivo

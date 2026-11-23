@@ -73,6 +73,14 @@ internal static class Ble
         }
     }
 
+    // Uncached pega a tabela nova depois de regravar o firmware, mas no Windows 11 26300 dá 0x80070016 com a CYD;
+    // Cached lê da placa quando não há cache, então serve de reserva.
+    public static T Gatt<T>(Func<BluetoothCacheMode, IAsyncOperation<T>> op)
+    {
+        try { return Wait(op(BluetoothCacheMode.Uncached)); }
+        catch (COMException) { return Wait(op(BluetoothCacheMode.Cached)); }
+    }
+
     public static T Wait<T>(IAsyncOperation<T> op)
     {
         using var cts = new CancellationTokenSource(OpTimeoutMs);
@@ -124,10 +132,10 @@ internal sealed class BleLink : ISerial
         {
             dev = Ble.Wait(BluetoothLEDevice.FromBluetoothAddressAsync(address));
             if (dev is null) return null;
-            var svc = Ble.Wait(dev.GetGattServicesForUuidAsync(Ble.Service, BluetoothCacheMode.Uncached)).Services.FirstOrDefault();
+            var svc = Ble.Gatt(m => dev.GetGattServicesForUuidAsync(Ble.Service, m)).Services.FirstOrDefault();
             if (svc is null) { dev.Dispose(); return null; }
-            var rx = Ble.Wait(svc.GetCharacteristicsForUuidAsync(Ble.Rx, BluetoothCacheMode.Uncached)).Characteristics.FirstOrDefault();
-            var tx = Ble.Wait(svc.GetCharacteristicsForUuidAsync(Ble.Tx, BluetoothCacheMode.Uncached)).Characteristics.FirstOrDefault();
+            var rx = Ble.Gatt(m => svc.GetCharacteristicsForUuidAsync(Ble.Rx, m)).Characteristics.FirstOrDefault();
+            var tx = Ble.Gatt(m => svc.GetCharacteristicsForUuidAsync(Ble.Tx, m)).Characteristics.FirstOrDefault();
             var session = Ble.Wait(GattSession.FromDeviceIdAsync(dev.BluetoothDeviceId));
             if (rx is null || tx is null) { session.Dispose(); svc.Dispose(); dev.Dispose(); return null; }
             var link = new BleLink(dev, svc, session, rx, tx);
